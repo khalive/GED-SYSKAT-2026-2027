@@ -1,0 +1,43 @@
+<div class="page">
+  @if (auth.user(); as u) {
+  <section class="hero">
+    <div>
+      <p class="date">{{ dateDuJour }}</p>
+      <h1>{{ salutation }}, {{ prenom() }}</h1>
+      <p class="resume">Vous êtes connecté en tant que <strong>{{ typeLibelle() }}</strong>.</p>
+    </div>
+    <a routerLink="/profil" class="btn btn-secondary">Mon profil</a>
+  </section>
+
+  <section class="grille tuiles">
+    <article class="card tuile">
+      <app-icon name="shield" /><span class="valeur">{{ u.roles.length }}</span><span class="muted">Rôle(s) attribué(s)</span>
+    </article>
+    <article class="card tuile">
+      <app-icon name="key" /><span class="valeur">{{ u.permissions.length }}</span><span class="muted">Permission(s)</span>
+    </article>
+    <article class="card tuile">
+      <app-icon name="globe" /><span class="valeur">{{ u.langue === 'ar' ? 'العربية' : 'Français' }}</span><span class="muted">Langue de l'interface</span>
+    </article>
+    <article class="card tuile">
+      <app-icon name="mail" /><span class="valeur mail">{{ u.email }}</span><span class="muted">Adresse e-mail</span>
+    </article>
+  </section>
+
+  <section class="grille deux">
+    <article class="card">
+      <h2 class="card-titre">Mes rôles</h2>
+      <div class="chips">
+        @for (r of u.roles; track r.id) { <span class="chip">{{ r.libelle }}</span> } @empty { <span class="muted">Aucun rôle attribué.</span> }
+      </div>
+    </article>
+    <article class="card">
+      <h2 class="card-titre">Mes permissions</h2>
+      <div class="chips">
+        @for (p of permissionsVisibles(); track p) { <span class="chip chip-neutre">{{ p }}</span> } @empty { <span class="muted">Aucune permission.</span> }
+        @if (permissionsRestantes() > 0) { <span class="chip">+{{ permissionsRestantes() }}</span> }
+      </div>
+    </article>
+  </section>
+  }
+</div>

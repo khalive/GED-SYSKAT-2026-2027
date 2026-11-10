@@ -1,0 +1,9 @@
+// le role de 
+{
+  "/api": {
+    "target": "http://127.0.0.1:8000",
+    // les requetes proxy sont redirigées vers le serveur backend local.
+    //  
+    "secure": false
+  }
+}

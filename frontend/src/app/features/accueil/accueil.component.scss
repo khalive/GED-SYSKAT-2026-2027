@@ -1,0 +1,14 @@
+.hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 1.75rem; margin-bottom: 1.1rem; border-radius: var(--r-lg); color: #fff;
+  background: radial-gradient(60% 120% at 100% 0%, rgb(45 212 191 / 40%), transparent 60%),
+              linear-gradient(135deg, #2a3fa8, #5b3fd0); box-shadow: var(--shadow); }
+.hero h1 { margin: .15rem 0 .35rem; font-size: 1.8rem; letter-spacing: -.02em; }
+.date { margin: 0; text-transform: capitalize; opacity: .8; font-size: .85rem; }
+.resume { margin: 0; opacity: .9; }
+.hero .btn-secondary { background: rgb(255 255 255 / 14%); color: #fff; border-color: rgb(255 255 255 / 30%); }
+
+.tuiles { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 1.1rem; }
+.tuile { display: flex; flex-direction: column; gap: .35rem; app-icon { color: var(--brand); } }
+.valeur { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; &.mail { font-size: 1rem; overflow-wrap: anywhere; } }
+.deux { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }

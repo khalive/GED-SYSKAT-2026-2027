@@ -1,0 +1,29 @@
+<div class="auth">
+  <aside class="marque" aria-hidden="true">
+    <div class="logo-ligne">
+      <span class="logo">G</span>
+      <span><strong>GED ENG</strong><small>École Nationale de Gestion</small></span>
+    </div>
+
+    <div class="accroche">
+      <h2>Soixante ans d'archives,<br />à portée de clic.</h2>
+      <p>La mémoire de l'école, numérisée, indexée et protégée.</p>
+    </div>
+
+    <ul class="atouts">
+      <li><app-icon name="search" [size]="18" /> Recherche en arabe et en français</li>
+      <li><app-icon name="shield" [size]="18" /> Accès par rôle et journal d'audit</li>
+      <li><app-icon name="file" [size]="18" /> Duplicata officiels vérifiables par QR code</li>
+    </ul>
+  </aside>
+
+  <section class="contenu">
+    <button
+      type="button" class="btn btn-icon theme" (click)="theme.basculer()"
+      [attr.aria-label]="theme.theme() === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'"
+    >
+      <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+    <div class="carte"><ng-content /></div>
+  </section>
+</div>

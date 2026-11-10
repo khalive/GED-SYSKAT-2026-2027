@@ -1,0 +1,95 @@
+<div class="shell" [class.reduit]="reduit()" [class.mobile-ouvert]="mobileOuvert()">
+  <aside class="sidebar" aria-label="Navigation principale">
+    <div class="marque">
+      <span class="logo">G</span>
+      <span class="libelle"><strong>GED ENG</strong><small>Archives numériques</small></span>
+    </div>
+
+    <nav>
+      <a class="nav-item" routerLink="/accueil" routerLinkActive="actif" title="Accueil" (click)="mobileOuvert.set(false)">
+        <app-icon name="home" /><span class="libelle">Accueil</span>
+      </a>
+      <a class="nav-item" routerLink="/profil" routerLinkActive="actif" title="Mon profil" (click)="mobileOuvert.set(false)">
+        <app-icon name="user" /><span class="libelle">Mon profil</span>
+      </a>
+
+      <p class="nav-titre libelle">Prochainement</p>
+      @for (m of bientot; track m.label) {
+      <span class="nav-item desactive" aria-disabled="true" [attr.title]="m.label + ' (bientôt)'">
+          <app-icon [name]="m.icone" /><span class="libelle">{{ m.label }}</span>
+        </span>
+      }
+    </nav>
+
+    <button type="button" class="reduire" (click)="basculerReduit()"
+            [attr.aria-label]="reduit() ? 'Développer le menu' : 'Réduire le menu'">
+      <app-icon name="panel-left" /><span class="libelle">Réduire</span>
+    </button>
+  </aside>
+
+  @if (mobileOuvert()) {
+  <div class="voile" (click)="mobileOuvert.set(false)"></div>
+  }
+
+  <header class="entete">
+    <button type="button" class="btn btn-icon burger" (click)="mobileOuvert.set(true)" aria-label="Ouvrir le menu">
+      <app-icon name="menu" />
+    </button>
+    <span class="espace"></span>
+
+    <div class="langues" role="group" aria-label="Langue">
+      <button type="button" [class.actif]="auth.user()?.langue === 'fr'" (click)="changerLangue('fr')">FR</button>
+      <button type="button" [class.actif]="auth.user()?.langue === 'ar'" (click)="changerLangue('ar')">ع</button>
+    </div>
+
+    <button type="button" class="btn btn-icon" (click)="theme.basculer()"
+            [attr.aria-label]="theme.theme() === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'">
+      <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+
+    <div class="menu-zone">
+      <button type="button" class="btn btn-icon cloche" (click)="basculerMenu('notif', $event)"
+              [attr.aria-expanded]="menu() === 'notif'" aria-label="Notifications">
+        <app-icon name="bell" />
+        @if (notifs.nonLues() > 0) { <span class="compteur">{{ notifs.nonLues() }}</span> }
+      </button>
+      @if (menu() === 'notif') {
+      <div class="panneau" (click)="$event.stopPropagation()">
+        <div class="panneau-tete">
+          <strong>Notifications</strong>
+          <button type="button" class="lien" (click)="notifs.marquerToutesLues()">Tout marquer comme lu</button>
+        </div>
+        @for (n of notifs.historique(); track n.id) {
+        <div class="notif" [class.non-lue]="!n.lue">
+          <span class="point" [attr.data-type]="n.type"></span>
+          <div><span>{{ n.message }}</span><small>{{ n.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}</small></div>
+        </div>
+        } @empty {
+        <p class="vide">Aucune notification pour cette session.</p>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="menu-zone">
+      <button type="button" class="utilisateur" (click)="basculerMenu('user', $event)"
+              [attr.aria-expanded]="menu() === 'user'">
+        <span class="avatar">{{ initiales() }}</span>
+        <span class="identite"><strong>{{ nomAffiche() }}</strong><small>{{ typeLibelle() }}</small></span>
+      </button>
+      @if (menu() === 'user') {
+      <div class="panneau court" (click)="$event.stopPropagation()">
+        <button type="button" class="item-menu" (click)="allerAuProfil()"><app-icon name="user" [size]="18" /> Mon profil</button>
+        <button type="button" class="item-menu danger" (click)="auth.logout()"><app-icon name="logout" [size]="18" /> Se déconnecter</button>
+      </div>
+      }
+    </div>
+  </header>
+
+  <main class="contenu"><router-outlet /></main>
+
+  <footer class="pied">
+    <span>© {{ annee }} École Nationale de Gestion, Mauritanie</span>
+    <span>GED v1.0</span>
+  </footer>
+</div>

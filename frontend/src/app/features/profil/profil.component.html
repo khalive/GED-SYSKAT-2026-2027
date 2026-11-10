@@ -1,0 +1,91 @@
+<div class="page">
+  <h1 class="titre">Mon profil</h1>
+  <p class="sous-titre">Gérez vos informations personnelles et votre sécurité.</p>
+
+  @if (user(); as u) {
+  <section class="card identite">
+    <span class="avatar-grand">{{ initiales() }}</span>
+    <div class="infos">
+      <h2>{{ u.first_name }} {{ u.last_name }}</h2>
+      <p class="muted">{{ '@' + u.username }} · {{ u.email }}</p>
+      <div class="chips">
+        <span class="chip">{{ typeLibelle() }}</span>
+        @for (r of u.roles; track r.id) { <span class="chip chip-neutre">{{ r.libelle }}</span> }
+      </div>
+    </div>
+  </section>
+
+  @if (u.profil_etudiant; as e) {
+  <section class="card bloc">
+    <h2 class="card-titre">Profil étudiant</h2>
+    <dl class="liste">
+      <div><dt>Matricule</dt><dd>{{ e.matricule }}</dd></div>
+      <div><dt>Filière</dt><dd>{{ e.filiere }}</dd></div>
+      <div><dt>Promotion</dt><dd>{{ e.annee_promotion }}</dd></div>
+    </dl>
+  </section>
+  }
+
+  <div class="colonnes">
+    <section class="card">
+      <h2 class="card-titre">Informations personnelles</h2>
+      <p class="muted marge">L'identifiant et l'adresse e-mail ne peuvent pas être modifiés ici.</p>
+
+      <form [formGroup]="formProfil" (ngSubmit)="enregistrerProfil()" novalidate>
+        <div class="deux-champs">
+          <div class="field">
+            <label for="first_name">Prénom</label>
+            <div class="input-wrap"><input id="first_name" class="sans-icone" formControlName="first_name" autocomplete="given-name" /></div>
+          </div>
+          <div class="field">
+            <label for="last_name">Nom</label>
+            <div class="input-wrap"><input id="last_name" class="sans-icone" formControlName="last_name" autocomplete="family-name" /></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="telephone">Téléphone</label>
+          <div class="input-wrap">
+            <app-icon class="lead" name="phone" [size]="18" />
+            <input id="telephone" type="tel" formControlName="telephone" autocomplete="tel" placeholder="+222 ..." />
+          </div>
+          @if (formProfil.controls.telephone.invalid) {
+          <small class="erreur-champ" role="alert">Numéro invalide (chiffres, espaces, + et tirets uniquement).</small>
+          }
+        </div>
+
+        <fieldset class="field segment">
+          <legend>Langue de l'interface</legend>
+          <label><input type="radio" formControlName="langue" value="fr" /><span>Français</span></label>
+          <label><input type="radio" formControlName="langue" value="ar" /><span>العربية</span></label>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary" [disabled]="enregistrement() || formProfil.pristine">
+          {{ enregistrement() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 class="card-titre">Mot de passe</h2>
+      <p class="muted marge">Utilisez un mot de passe unique de 8 caractères minimum.</p>
+
+      <form [formGroup]="formMdp" (ngSubmit)="changerMotDePasse()" novalidate>
+        <app-password-field id="ancien" label="Mot de passe actuel" [control]="formMdp.controls.ancien" />
+        <app-password-field id="nouveau" label="Nouveau mot de passe" autocomplete="new-password"
+                            [control]="formMdp.controls.nouveau" [force]="true" />
+        <app-password-field id="confirmation" label="Confirmer le nouveau mot de passe" autocomplete="new-password"
+                            [control]="formMdp.controls.confirmation" />
+
+        @if (formMdp.errors?.['correspondance'] && formMdp.controls.confirmation.touched) {
+        <small class="erreur-champ" role="alert">Les deux mots de passe ne correspondent pas.</small>
+        }
+
+        <button type="submit" class="btn btn-primary" [disabled]="changement()">
+          {{ changement() ? 'Modification...' : 'Changer le mot de passe' }}
+        </button>
+      </form>
+    </section>
+  </div>
+  }
+</div>
