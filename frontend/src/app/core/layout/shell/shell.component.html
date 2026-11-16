@@ -9,9 +9,31 @@
       <a class="nav-item" routerLink="/accueil" routerLinkActive="actif" title="Accueil" (click)="mobileOuvert.set(false)">
         <app-icon name="home" /><span class="libelle">Accueil</span>
       </a>
-      <a class="nav-item" routerLink="/profil" routerLinkActive="actif" title="Mon profil" (click)="mobileOuvert.set(false)">
-        <app-icon name="user" /><span class="libelle">Mon profil</span>
+      <a class="nav-item" routerLink="/profil" routerLinkActive="actif" title="Mon compte" (click)="mobileOuvert.set(false)">
+        <app-icon name="user" /><span class="libelle">Mon compte</span>
       </a>
+      @if (peutGererComptes()) {
+        <a class="nav-item" routerLink="/utilisateurs" routerLinkActive="actif" title="Utilisateurs"
+           (click)="mobileOuvert.set(false)">
+          <app-icon name="users" /><span class="libelle">Utilisateurs</span>
+        </a>
+        <a class="nav-item" routerLink="/roles" routerLinkActive="actif" title="Rôles et permissions"
+           (click)="mobileOuvert.set(false)">
+          <app-icon name="key" /><span class="libelle">Rôles &amp; permissions</span>
+        </a>
+      }
+      @if (peutConsulterAudit()) {
+        <a class="nav-item" routerLink="/audit" routerLinkActive="actif" title="Journal d’audit"
+           (click)="mobileOuvert.set(false)">
+          <app-icon name="archive" /><span class="libelle">Journal d’audit</span>
+        </a>
+      }
+      @if (auth.user()?.type_utilisateur === 'ancien_etudiant') {
+        <a class="nav-item" routerLink="/profil-etudiant" routerLinkActive="actif" title="Mon parcours étudiant"
+           (click)="mobileOuvert.set(false)">
+          <app-icon name="graduation-cap" /><span class="libelle">Mon parcours</span>
+        </a>
+      }
 
       <p class="nav-titre libelle">Prochainement</p>
       @for (m of bientot; track m.label) {
@@ -79,7 +101,7 @@
       </button>
       @if (menu() === 'user') {
       <div class="panneau court" (click)="$event.stopPropagation()">
-        <button type="button" class="item-menu" (click)="allerAuProfil()"><app-icon name="user" [size]="18" /> Mon profil</button>
+        <button type="button" class="item-menu" (click)="allerAuProfil()"><app-icon name="user" [size]="18" /> Modifier mon compte</button>
         <button type="button" class="item-menu danger" (click)="auth.logout()"><app-icon name="logout" [size]="18" /> Se déconnecter</button>
       </div>
       }

@@ -1,0 +1,83 @@
+<section class="page-audit">
+  <header class="audit-heading">
+    <div>
+      <span class="kicker">Traçabilité &amp; conformité</span>
+      <h1>Journal d’audit</h1>
+      <p>Un historique consultable des actions réalisées sur la GED.</p>
+    </div>
+    <div class="audit-actions">
+      @if (auth.hasPermission('audit.exporter')) {
+        <button type="button" class="btn-primary" (click)="exporter()">Exporter CSV</button>
+      }
+      <div class="audit-total"><strong>{{ total() }}</strong><span>événement(s)</span></div>
+    </div>
+  </header>
+
+  <form class="filters" (submit)="$event.preventDefault(); appliquerFiltres()">
+    <label class="filter search-filter">
+      <span>Recherche</span>
+      <span class="search-wrap"><app-icon name="search" [size]="17" />
+        <input type="search" placeholder="Utilisateur, entité ou adresse IP"
+               [value]="recherche()" (input)="recherche.set(lireChamp($event.target))" />
+      </span>
+    </label>
+    <label class="filter">
+      <span>Type d’action</span>
+      <select [value]="action()" (change)="action.set(lireChamp($event.target))">
+        <option value="">Toutes les actions</option>
+        @for (option of actions; track option.code) {
+          <option [value]="option.code">{{ option.libelle }}</option>
+        }
+      </select>
+    </label>
+    <label class="filter">
+      <span>Du</span>
+      <input type="date" [value]="depuis()" (input)="depuis.set(lireChamp($event.target))" />
+    </label>
+    <label class="filter">
+      <span>Au</span>
+      <input type="date" [value]="jusqua()" (input)="jusqua.set(lireChamp($event.target))" />
+    </label>
+    <button class="btn-primary" type="submit">Appliquer les filtres</button>
+  </form>
+
+  <section class="timeline-panel">
+    @if (chargement()) {
+      <div class="state"><span class="loader"></span><span>Chargement du journal…</span></div>
+    } @else if (lignes().length === 0) {
+      <div class="state empty"><app-icon name="archive" [size]="25" /><strong>Aucun événement trouvé</strong>
+        <span>Essayez d’élargir votre recherche ou la période.</span>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Événement</th><th>Utilisateur</th><th>Entité</th><th>Adresse IP</th><th>Date</th></tr></thead>
+          <tbody>
+            @for (ligne of lignes(); track ligne.id) {
+              <tr>
+                <td><span class="event"><span class="event-dot" [attr.data-action]="ligne.action"></span>
+                  <span><strong>{{ libelleAction(ligne.action) }}</strong><small>#{{ ligne.id }}</small></span>
+                </span></td>
+                <td>{{ ligne.utilisateur_username || 'Système' }}</td>
+                <td>{{ ligne.entite_cible || '—' }}{{ ligne.id_cible ? ' · ' + ligne.id_cible : '' }}</td>
+                <td class="mono">{{ ligne.adresse_ip || '—' }}</td>
+                <td>{{ ligne.date_action | date:'dd/MM/yyyy · HH:mm:ss' }}</td>
+              </tr>
+              @if (hasDetails(ligne)) {
+                <tr class="details-row"><td colspan="5"><details><summary>Détails de l’événement</summary>
+                  <code>{{ details(ligne) }}</code></details></td></tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="Pagination">
+        <button type="button" class="btn-secondary" [disabled]="page() <= 1"
+                (click)="changerPage(page() - 1)">Précédent</button>
+        <span>Page {{ page() }}</span>
+        <button type="button" class="btn-secondary" [disabled]="!pageSuivante()"
+                (click)="changerPage(page() + 1)">Suivant</button>
+      </nav>
+    }
+  </section>
+</section>

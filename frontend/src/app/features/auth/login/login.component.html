@@ -1,28 +1,50 @@
-<main class="page">
-<section class="carte">
-<h1>GED - École Nationale de Gestion</h1>
-<p class="sous-titre">Connectez-vous pour accéder aux archives</p>
+<app-auth-layout>
+  <div class="auth-form">
+    <span class="auth-kicker"><app-icon name="shield" [size]="15" /> Espace sécurisé</span>
+    <h1 class="titre">Bienvenue</h1>
+    <p class="sous-titre">Connectez-vous à votre espace d’archives GED ENG.</p>
 
-<form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
-<label for="username">Identifiant</label>
-<input id="username" type="text" formControlName="username" autocomplete="username" />
-@if (form.controls.username.touched && form.controls.username.invalid) {
-<small class="champ-erreur">L'identifiant est obligatoire.</small>
-}
+    <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+      <div class="field">
+        <label for="username">Identifiant</label>
+        <div class="input-wrap">
+          <app-icon class="lead" name="user" [size]="18" />
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            [attr.aria-invalid]="form.controls.username.touched && form.controls.username.invalid"
+          />
+        </div>
+        @if (form.controls.username.touched && form.controls.username.invalid) {
+          <small class="erreur-champ" role="alert">L’identifiant est obligatoire.</small>
+        }
+      </div>
 
-<label for="password">Mot de passe</label>
-<input id="password" type="password" formControlName="password" autocomplete="current-password" />
-@if (form.controls.password.touched && form.controls.password.invalid) {
-<small class="champ-erreur">Le mot de passe est obligatoire.</small>
-}
+      <app-password-field
+        id="password"
+        label="Mot de passe"
+        [control]="form.controls.password"
+      />
 
-@if (erreur()) {
-<div class="alerte" role="alert">{{ erreur() }}</div>
-}
+      @if (erreur()) {
+        <div class="alert alert-error" role="alert">
+          <app-icon name="alert" [size]="18" />
+          <span>{{ erreur() }}</span>
+        </div>
+      }
 
-<button type="submit" [disabled]="chargement()">
-                                 {{ chargement() ? 'Connexion...' : 'Se connecter' }}
-</button>
-  </form>
-    </section>
-      </main>
+      <button type="submit" class="btn btn-primary btn-block bouton-connexion" [disabled]="chargement()">
+        {{ chargement() ? 'Connexion...' : 'Se connecter' }}
+        @if (!chargement()) { <app-icon name="key" [size]="18" /> }
+      </button>
+    </form>
+
+    <p class="lien-oublie"><a routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a></p>
+    <p class="inscription">
+      Vous n’avez pas encore de compte ?
+      <a routerLink="/inscription">Créer un compte</a>
+    </p>
+  </div>
+</app-auth-layout>

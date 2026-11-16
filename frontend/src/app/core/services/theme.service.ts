@@ -33,7 +33,7 @@ export class ThemeService {
     } catch {
       /* ignoré */
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'light';
   }
 
   private appliquer(theme: Theme): void {

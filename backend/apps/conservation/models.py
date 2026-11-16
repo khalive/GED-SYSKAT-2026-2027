@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -91,7 +92,15 @@ class BordereauElimination(models.Model):
     def __str__(self):
         return f"Bordereau {self.numero}"
 
-    def valider(self):
+    def valider(self, utilisateur):
+        if not utilisateur.a_role("direction") or utilisateur.a_role("administrateur"):
+            raise PermissionDenied(
+                "Seule la Direction peut valider un bordereau d'élimination."
+            )
+        if utilisateur.pk == self.etabli_par_id:
+            raise PermissionDenied(
+                "L'auteur du bordereau ne peut pas valider sa propre élimination."
+            )
         if self.statut != self.Statut.BROUILLON:
             raise ValueError("Seul un bordereau en brouillon peut être validé.")
         if not self.lignes.exists():
@@ -99,17 +108,25 @@ class BordereauElimination(models.Model):
         self.statut = self.Statut.VALIDE
         self.save(update_fields=["statut"])
 
-    def rejeter(self):
+    def rejeter(self, utilisateur):
+        if not utilisateur.a_role("direction") or utilisateur.a_role("administrateur"):
+            raise PermissionDenied(
+                "Seule la Direction peut rejeter un bordereau d'élimination."
+            )
         if self.statut != self.Statut.BROUILLON:
             raise ValueError("Seul un bordereau en brouillon peut être rejeté.")
         self.statut = self.Statut.REJETE
         self.save(update_fields=["statut"])
 
     @transaction.atomic
-    def executer(self):
+    def executer(self, utilisateur):
         """Marque tous les documents du bordereau comme éliminés."""
         from apps.documents.models import Document
 
+        if not utilisateur.a_permission("eliminations.executer"):
+            raise PermissionDenied(
+                "La permission d'exécuter les bordereaux d'élimination est requise."
+            )
         if self.statut != self.Statut.VALIDE:
             raise ValueError("Le bordereau doit être validé avant exécution.")
         ids = self.lignes.values_list("document_id", flat=True)

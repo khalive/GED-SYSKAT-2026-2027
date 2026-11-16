@@ -1,6 +1,7 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.utils import timezone
 
@@ -143,6 +144,16 @@ class EtapeWorkflow(models.Model):
         return f"{self.demande.numero_demande} - étape {self.ordre}"
 
     def _cloturer(self, utilisateur, statut, commentaire=""):
+        if not utilisateur.a_role(self.role_requis):
+            raise PermissionDenied(
+                f"Le rôle {self.role_requis} est requis pour traiter cette étape."
+            )
+        if self.role_requis == Utilisateur.TypeUtilisateur.DIRECTION and utilisateur.a_role(
+            "administrateur"
+        ):
+            raise PermissionDenied(
+                "L'administration technique ne peut pas traiter les étapes réservées à la Direction."
+            )
         if self.statut != self.Statut.EN_ATTENTE:
             raise ValueError("Cette étape a déjà été traitée.")
         self.statut = statut
@@ -218,6 +229,13 @@ class DocumentGenere(models.Model):
         return self.numero_officiel
 
     def signer(self, utilisateur):
+        if (
+            not utilisateur.a_role("direction")
+            or utilisateur.a_role("administrateur")
+        ):
+            raise PermissionDenied(
+                "Seule la Direction peut signer un document officiel."
+            )
         self.signe = True
         self.signe_par = utilisateur
         self.save(update_fields=["signe", "signe_par"])

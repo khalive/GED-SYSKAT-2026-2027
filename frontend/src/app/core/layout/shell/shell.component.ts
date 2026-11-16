@@ -40,6 +40,18 @@ export class ShellComponent {
     return (u && `${u.first_name} ${u.last_name}`.trim()) || u?.username || '';
   });
 
+  protected readonly peutGererComptes = computed(() => {
+    const user = this.auth.user();
+    return this.auth.hasPermission('utilisateurs.gerer')
+      || Boolean(user?.is_staff && user.roles.length === 0);
+  });
+
+  protected readonly peutConsulterAudit = computed(() => {
+    const user = this.auth.user();
+    return this.auth.hasPermission('audit.consulter')
+      || Boolean(user?.is_staff && user.roles.length === 0);
+  });
+
   protected readonly initiales = computed(() =>
     this.nomAffiche()
       .split(/\s+/)

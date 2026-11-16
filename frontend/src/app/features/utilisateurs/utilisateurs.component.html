@@ -1,0 +1,132 @@
+<section class="page">
+  <header class="entete-page">
+    <div>
+      <p class="surtitre">Administration</p>
+      <h1>Utilisateurs</h1>
+      <p class="description">Gérez les comptes, les rôles et les accès à la GED.</p>
+    </div>
+    <div class="actions-entete">
+      <span class="total">{{ total() }} compte(s)</span>
+      <button class="btn" type="button" (click)="ouvrirCreation()">
+        <app-icon name="user" [size]="17" /> Créer un compte
+      </button>
+    </div>
+  </header>
+
+  <form class="recherche" (submit)="$event.preventDefault(); rechercher(champRecherche.value)">
+    <label class="sr-only" for="recherche-utilisateurs">Rechercher un utilisateur</label>
+    <input #champRecherche id="recherche-utilisateurs" type="search" placeholder="Nom, identifiant ou e-mail"
+           [value]="recherche()" />
+    <button class="btn" type="submit"><app-icon name="search" [size]="18" /> Rechercher</button>
+  </form>
+
+  @if (erreur()) {
+    <p class="etat erreur" role="alert">{{ erreur() }}</p>
+  } @else if (chargement()) {
+    <p class="etat" role="status">Chargement des utilisateurs…</p>
+  } @else {
+    <div class="table-conteneur">
+      <table>
+        <thead>
+          <tr><th>Nom</th><th>Identifiant</th><th>E-mail</th><th>Type</th><th>Statut</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (utilisateur of utilisateurs(); track utilisateur.id) {
+            <tr>
+              <td>{{ utilisateur.first_name }} {{ utilisateur.last_name }}</td>
+              <td>{{ utilisateur.username }}</td>
+              <td>{{ utilisateur.email }}</td>
+              <td>{{ typeLibelle(utilisateur.type_utilisateur) }}</td>
+              <td><span class="statut" [class.inactif]="!utilisateur.is_active">
+                {{ utilisateur.is_active ? 'Actif' : 'Inactif' }}
+              </span></td>
+              <td class="actions-ligne">
+                <button class="btn-lien" type="button" (click)="ouvrirEdition(utilisateur)">Modifier</button>
+                @if (peutDesactiver(utilisateur)) {
+                  <button class="btn-lien danger" type="button" (click)="desactiver(utilisateur)">Désactiver</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td class="vide" colspan="6">Aucun utilisateur trouvé.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="pagination" aria-label="Pagination">
+      <button class="btn secondaire" type="button" [disabled]="page() <= 1"
+              (click)="changerPage(page() - 1)">Précédent</button>
+      <span>Page {{ page() }}</span>
+      <button class="btn secondaire" type="button" [disabled]="!pageSuivante()"
+              (click)="changerPage(page() + 1)">Suivant</button>
+    </nav>
+  }
+
+  @if (formulaireOuvert()) {
+    <div class="voile-modal" (click)="formulaireOuvert.set(false)">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titre"
+               (click)="$event.stopPropagation()">
+        <header class="modal-entete">
+          <div><p class="surtitre">Administration</p>
+            <h2 id="modal-titre">{{ utilisateurEdite() ? 'Modifier le compte' : 'Créer un compte' }}</h2>
+          </div>
+          <button class="fermer" type="button" aria-label="Fermer" (click)="formulaireOuvert.set(false)">
+            <app-icon name="x" [size]="18" />
+          </button>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="enregistrer()" novalidate>
+          <div class="champs">
+            <label class="field"><span>Prénom</span><input formControlName="first_name" autocomplete="given-name" /></label>
+            <label class="field"><span>Nom</span><input formControlName="last_name" autocomplete="family-name" /></label>
+            <label class="field"><span>Identifiant</span><input formControlName="username" autocomplete="username" /></label>
+            <label class="field"><span>E-mail</span><input type="email" formControlName="email" autocomplete="email" /></label>
+            <label class="field"><span>Type de compte</span>
+              <select formControlName="type_utilisateur">
+                @for (type of typesDisponibles(); track type.code) { <option [value]="type.code">{{ type.libelle }}</option> }
+              </select>
+            </label>
+            <label class="field"><span>Téléphone</span><input type="tel" formControlName="telephone" /></label>
+            <label class="field"><span>Langue</span>
+              <select formControlName="langue"><option value="fr">Français</option><option value="ar">العربية</option></select>
+            </label>
+            <label class="field"><span>{{ utilisateurEdite() ? 'Nouveau mot de passe (facultatif)' : 'Mot de passe initial' }}</span>
+              <input type="password" formControlName="password" autocomplete="new-password" />
+            </label>
+          </div>
+          <div class="roles-affectes">
+            <div class="titre-role"><strong>Rôles attribués</strong><small>Les rôles déterminent les permissions du compte.</small></div>
+            <div class="roles-choix">
+              @for (role of roles(); track role.id) {
+                <label><input type="checkbox" [checked]="form.controls.role_ids.value.includes(role.id)"
+                              (change)="basculerRole(role.id, $event)" /><span>{{ role.libelle }}</span></label>
+              } @empty { <p>Aucun rôle disponible. Créez-en d’abord dans « Rôles &amp; permissions ».</p> }
+            </div>
+          </div>
+          @if (utilisateurEdite()?.profil_etudiant; as profil) {
+            <section class="parcours-alumni">
+              <div><app-icon name="graduation-cap" [size]="17" /><strong>Parcours déclaré</strong></div>
+              <span><small>Matricule</small>{{ profil.matricule }}</span>
+              <span><small>CNI</small>{{ profil.cni }}</span>
+              <span><small>Promotion</small>{{ profil.annee_promotion }} · {{ profil.filiere }}</span>
+            </section>
+          }
+          <label class="activation"><input type="checkbox" formControlName="is_active" />
+            <span><strong>Compte actif</strong><small>Autoriser la connexion dès l’enregistrement.</small></span>
+          </label>
+          @if (erreurFormulaire()) { <p class="erreur-champ" role="alert">{{ erreurFormulaire() }}</p> }
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <p class="erreur-champ" role="alert">Un mot de passe valide est requis à la création.</p>
+          }
+          <footer class="modal-actions">
+            <button class="btn secondaire" type="button" (click)="formulaireOuvert.set(false)">Annuler</button>
+            <button class="btn" type="submit" [disabled]="sauvegarde()">
+              {{ sauvegarde() ? 'Enregistrement…' : utilisateurEdite() ? 'Enregistrer' : 'Créer le compte' }}
+            </button>
+          </footer>
+        </form>
+      </section>
+    </div>
+  }
+</section>

@@ -1,0 +1,16 @@
+.kicker { display: inline-flex; align-items: center; gap: 7px; color: var(--brand); font-size: .77rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.section-title { margin: 22px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: .9rem; }
+.section-title.academic { margin-top: 25px; }
+.two-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field { display: grid; gap: 6px; margin-bottom: 12px; color: var(--text); font-size: .81rem; font-weight: 650; }
+.field small { color: var(--muted); font-weight: 450; }
+.field input { width: 100%; min-width: 0; height: 42px; padding: 0 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); color: var(--text); font: inherit; font-weight: 450; }
+.field input:focus { border-color: var(--brand); outline: 2px solid color-mix(in srgb, var(--brand) 17%, transparent); }
+.alert-error { display: flex; align-items: center; gap: 8px; margin: 14px 0; padding: 11px; border-radius: 9px; background: var(--danger-soft); color: var(--danger); font-size: .82rem; }
+.signin { margin: 18px 0 0; color: var(--muted); font-size: .83rem; text-align: center; }
+.signin a { color: var(--brand); font-weight: 650; }
+.confirmation { padding: 35px 0 10px; text-align: center; }
+.confirmation .kicker { display: flex; justify-content: center; margin-top: 15px; }
+.success-icon { display: grid; width: 54px; height: 54px; margin: 0 auto; place-items: center; border-radius: 17px; background: var(--success-soft); color: var(--success); }
+.notice { margin: 15px 0 25px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-size: .84rem; }
+@media (max-width: 520px) { .two-fields { grid-template-columns: 1fr; gap: 0; } }

@@ -5,56 +5,69 @@ import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 
+type ResultatRafraichissement =
+  | { succes: true; jeton: string }
+  | { succes: false; erreur: unknown };
+
 let rafraichissementEnCours = false;
-const nouveauJeton$ = new BehaviorSubject<string | null>(null);
+const resultatRafraichissement$ = new BehaviorSubject<ResultatRafraichissement | null>(null);
 
 const avecJeton = (req: HttpRequest<unknown>, jeton: string) =>
-req.clone({ setHeaders: { Authorization: `Bearer ${jeton}` } });
+  req.clone({ setHeaders: { Authorization: `Bearer ${jeton}` } });
 
 const estRouteAuthPublique = (url: string) =>
-url.includes('/auth/login/') || url.includes('/auth/refresh/') || url.includes('/auth/password-reset/');
+  url.includes('/auth/login/') ||
+  url.includes('/auth/register/') ||
+  url.includes('/auth/refresh/') ||
+  url.includes('/auth/password-reset/');
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
 
-// On ne touche qu'aux appels vers notre API, hors login et refresh.
-if (!req.url.startsWith(environment.apiUrl) || estRouteAuthPublique(req.url)) {
-return next(req);
-}
+  if (!req.url.startsWith(environment.apiUrl) || estRouteAuthPublique(req.url)) {
+    return next(req);
+  }
 
-const jeton = auth.accessToken();
-const requete = jeton ? avecJeton(req, jeton) : req;
+  const jeton = auth.accessToken();
+  const requete = jeton ? avecJeton(req, jeton) : req;
 
-return next(requete).pipe(
-  catchError((erreur) => {
-  const non_autorise = erreur instanceof HttpErrorResponse && erreur.status === 401;
-if (!non_autorise || !auth.refreshToken()) {
-return throwError(() => erreur);
-}
+  return next(requete).pipe(
+    catchError((erreur) => {
+      const nonAutorise = erreur instanceof HttpErrorResponse && erreur.status === 401;
+      if (!nonAutorise || !auth.refreshToken()) {
+        return throwError(() => erreur);
+      }
 
-// Un rafraîchissement est déjà en cours : on attend son résultat.
-if (rafraichissementEnCours) {
-return nouveauJeton$.pipe(
-  filter((j): j is string => j !== null),
-take(1),
-switchMap((j) => next(avecJeton(req, j))),
-);
-}
+      if (rafraichissementEnCours) {
+        return resultatRafraichissement$.pipe(
+          filter(
+            (resultat): resultat is ResultatRafraichissement => resultat !== null,
+          ),
+          take(1),
+          switchMap((resultat) =>
+            resultat.succes
+              ? next(avecJeton(req, resultat.jeton))
+              : throwError(() => resultat.erreur),
+          ),
+        );
+      }
 
-rafraichissementEnCours = true;
-nouveauJeton$.next(null);
-return auth.refresh().pipe(
-  switchMap((j) => {
-  rafraichissementEnCours = false;
-nouveauJeton$.next(j);
-return next(avecJeton(req, j));
-}),
-catchError((e) => {
-rafraichissementEnCours = false;
-auth.expirerSession();
-return throwError(() => e);
-}),
-);
-}),
-);
+      rafraichissementEnCours = true;
+      resultatRafraichissement$.next(null);
+
+      return auth.refresh().pipe(
+        catchError((erreurRefresh) => {
+          rafraichissementEnCours = false;
+          resultatRafraichissement$.next({ succes: false, erreur: erreurRefresh });
+          auth.expirerSession();
+          return throwError(() => erreurRefresh);
+        }),
+        switchMap((nouveauJeton) => {
+          rafraichissementEnCours = false;
+          resultatRafraichissement$.next({ succes: true, jeton: nouveauJeton });
+          return next(avecJeton(req, nouveauJeton));
+        }),
+      );
+    }),
+  );
 };

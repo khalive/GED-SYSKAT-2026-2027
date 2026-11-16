@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, finalize, map, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ChangePasswordRequest,
+  InscriptionRequest,
   Langue,
   LoginRequest,
   LoginResponse,
@@ -12,6 +13,8 @@ import {
   Utilisateur,MessageResponse, PasswordResetConfirmRequest , ProfilUpdateRequest
 } from '../models/auth.models';
 import { LangueService } from './langue.service';
+import { NotificationService } from './notification.service';
+import { messageApi } from '../utils/http-erreur';
 
 const CLE_ACCESS = 'ged.access';
 const CLE_REFRESH = 'ged.refresh';
@@ -21,6 +24,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly langueService = inject(LangueService);
+  private readonly notifications = inject(NotificationService);
   private readonly base = `${environment.apiUrl}/auth`;
 
   private readonly _accessToken = signal<string | null>(localStorage.getItem(CLE_ACCESS));
@@ -39,6 +43,10 @@ export class AuthService {
         this.definirUtilisateur(res.user);
       }),
     );
+  }
+
+  inscrire(data: InscriptionRequest): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.base}/register/`, data);
   }
 
   /** Obtient un nouveau jeton d'accès à partir du jeton de rafraîchissement. */
@@ -64,7 +72,12 @@ export class AuthService {
     this.http
       .post(`${this.base}/logout/`, { refresh })
       .pipe(finalize(terminer))
-      .subscribe({ error: () => {} });
+      .subscribe({
+        error: (err: HttpErrorResponse) =>
+          this.notifications.avertissement(
+            messageApi(err, 'La session locale a été fermée, mais la déconnexion serveur a échoué.'),
+          ),
+      });
   }
 
   /** Au démarrage de l'application : recharge le profil si un jeton existe. */

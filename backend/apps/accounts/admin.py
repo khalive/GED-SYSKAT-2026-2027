@@ -7,25 +7,62 @@ from .models import AncienEtudiant, JournalAudit, Permission, Role, Utilisateur
 class UtilisateurAdmin(UserAdmin):
     list_display = ("username", "email", "type_utilisateur", "is_active")
     list_filter = ("type_utilisateur", "is_active", "roles")
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = tuple(
+        (
+            title,
+            {
+                **options,
+                "fields": tuple(
+                    field
+                    for field in options["fields"]
+                    if field not in {"groups", "user_permissions", "is_superuser"}
+                ),
+            },
+        )
+        for title, options in UserAdmin.fieldsets
+    ) + (
         ("Profil GED", {"fields": ("type_utilisateur", "telephone", "langue", "roles")}),
     )
+    readonly_fields = UserAdmin.readonly_fields + ("roles",)
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("Profil GED", {"fields": ("email", "type_utilisateur", "telephone", "langue")}),
     )
-    filter_horizontal = UserAdmin.filter_horizontal + ("roles",)
+    filter_horizontal = tuple(
+        field
+        for field in UserAdmin.filter_horizontal
+        if field not in {"groups", "user_permissions"}
+    )
 
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
     list_display = ("code", "libelle")
-    filter_horizontal = ("permissions",)
+    readonly_fields = ("code", "libelle", "permissions")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ("code", "ressource", "action")
     search_fields = ("code", "ressource")
+    readonly_fields = ("code", "ressource", "action")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(AncienEtudiant)

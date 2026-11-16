@@ -1,0 +1,110 @@
+<section class="page-admin">
+  <header class="page-heading">
+    <div>
+      <span class="kicker">Contrôle des accès</span>
+      <h1>Rôles &amp; permissions</h1>
+      <p>Définissez des rôles clairs et les actions métier qui leur sont accordées.</p>
+    </div>
+    <span class="heading-mark"><app-icon name="key" [size]="22" /></span>
+  </header>
+
+  <div class="workspace">
+    <section class="panel roles-panel">
+      <div class="panel-heading">
+        <div><h2>Rôles configurés</h2><p>{{ roles().length }} rôle(s)</p></div>
+        <button class="btn btn-quiet" type="button" (click)="nouveauRole()">Nouveau rôle</button>
+      </div>
+      <div class="role-list">
+        @for (role of roles(); track role.id) {
+          <article class="role-card" [class.selected]="roleEnCours() === role.id">
+            <button type="button" class="role-select" (click)="choisirRole(role)">
+              <span class="role-symbol"><app-icon name="shield" [size]="19" /></span>
+              <span class="role-summary"><strong>{{ role.libelle }}</strong><small>{{ role.code }}</small></span>
+              <span class="count">{{ role.permissions.length }}</span>
+            </button>
+            <button type="button" class="icon-action danger" [attr.aria-label]="'Supprimer ' + role.libelle"
+                    (click)="supprimerRole(role)"><app-icon name="x" [size]="16" /></button>
+          </article>
+        } @empty {
+          <p class="empty-state">Aucun rôle n’est configuré.</p>
+        }
+      </div>
+    </section>
+
+    <section class="panel editor-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>{{ roleEnCours() === null ? 'Créer un rôle' : 'Modifier le rôle' }}</h2>
+          <p>Le code sert de référence stable dans l’application.</p>
+        </div>
+        <span class="panel-icon"><app-icon name="user" [size]="19" /></span>
+      </div>
+      <form [formGroup]="roleForm" (ngSubmit)="enregistrerRole()" novalidate>
+        <div class="field-grid">
+          <label class="field">
+            <span>Code du rôle</span>
+            <input formControlName="code" placeholder="ex. gestionnaire_documents" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Nom affiché</span>
+            <input formControlName="libelle" placeholder="Gestionnaire de documents" />
+          </label>
+        </div>
+        <div class="permission-heading">
+          <div><h3>Permissions attribuées</h3><span>{{ permissionsSelectionnees().length }} sélectionnée(s)</span></div>
+        </div>
+        <div class="permission-grid">
+          @for (permission of permissions(); track permission.id) {
+            <label class="permission-choice">
+              <input type="checkbox" [checked]="permissionsSelectionnees().includes(permission.id)"
+                     (change)="basculerPermission(permission.id, $event)" />
+              <span><strong>{{ permission.code }}</strong><small>{{ permission.action }} · {{ permission.ressource }}</small></span>
+            </label>
+          } @empty {
+            <p class="empty-state">Ajoutez des permissions au catalogue pour les attribuer ici.</p>
+          }
+        </div>
+        <div class="form-actions">
+          @if (roleEnCours() !== null) {
+            <button class="btn btn-quiet" type="button" (click)="nouveauRole()">Annuler</button>
+          }
+          <button class="btn btn-primary" type="submit" [disabled]="sauvegarde()">
+            {{ sauvegarde() ? 'Enregistrement…' : 'Enregistrer le rôle' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel catalog-panel">
+      <div class="panel-heading">
+        <div><h2>Catalogue des permissions</h2><p>Actions disponibles pour l’ensemble des rôles.</p></div>
+        <span class="panel-icon"><app-icon name="lock" [size]="19" /></span>
+      </div>
+      <form class="permission-form" [formGroup]="permissionForm" (ngSubmit)="creerPermission()" novalidate>
+        <label class="field"><span>Code</span><input formControlName="code" placeholder="document.consulter" /></label>
+        <label class="field"><span>Ressource</span><input formControlName="ressource" placeholder="document" /></label>
+        <label class="field"><span>Action</span><input formControlName="action" placeholder="consulter" /></label>
+        @if (permissionEnCours() !== null) {
+          <button class="btn btn-quiet" type="button" (click)="annulerEditionPermission()">Annuler</button>
+        }
+        <button class="btn btn-primary" type="submit">
+          {{ permissionEnCours() === null ? 'Ajouter' : 'Mettre à jour' }}
+        </button>
+      </form>
+      <div class="catalog-list">
+        @for (permission of permissions(); track permission.id) {
+          <div class="catalog-item">
+            <span class="catalog-dot"></span>
+            <span><strong>{{ permission.code }}</strong><small>{{ permission.ressource }} / {{ permission.action }}</small></span>
+            <button type="button" class="icon-action" [attr.aria-label]="'Modifier ' + permission.code"
+                    (click)="choisirPermission(permission)"><app-icon name="edit" [size]="15" /></button>
+            <button type="button" class="icon-action danger" [attr.aria-label]="'Supprimer ' + permission.code"
+                    (click)="supprimerPermission(permission)"><app-icon name="x" [size]="16" /></button>
+          </div>
+        } @empty {
+          <p class="empty-state">Le catalogue est encore vide.</p>
+        }
+      </div>
+    </section>
+  </div>
+</section>

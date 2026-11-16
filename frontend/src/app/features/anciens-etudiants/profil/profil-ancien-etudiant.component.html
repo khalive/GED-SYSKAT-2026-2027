@@ -1,0 +1,35 @@
+<section class="profile-page">
+  <header class="profile-heading">
+    <div>
+      <span class="kicker">Espace alumni</span>
+      <h1>Mon parcours étudiant</h1>
+      <p>Consultez et mettez à jour les informations associées à votre ancien cursus.</p>
+    </div>
+    <span class="profile-icon"><app-icon name="graduation-cap" [size]="24" /></span>
+  </header>
+
+  @if (chargement()) {
+    <div class="state" role="status"><span class="loader"></span>Chargement de votre profil…</div>
+  } @else if (erreur() && !form.dirty) {
+    <div class="state error" role="alert"><app-icon name="alert" [size]="20" />{{ erreur() }}</div>
+  } @else {
+    <form class="profile-card" [formGroup]="form" (ngSubmit)="enregistrer()">
+      <div class="card-heading"><div><h2>Informations académiques</h2><p>Ces données aident à vérifier votre parcours.</p></div>
+        <span class="secure"><app-icon name="lock" [size]="15" /> Données protégées</span></div>
+      <div class="field-grid">
+        <label class="field"><span>Matricule étudiant</span><input formControlName="matricule" /></label>
+        <label class="field"><span>Numéro de CNI</span><input formControlName="cni" /></label>
+        <label class="field"><span>Date de naissance</span><input type="date" formControlName="date_naissance" /></label>
+        <label class="field"><span>Année de promotion</span><input type="number" formControlName="annee_promotion" min="1950" [max]="anneeMax" /></label>
+        <label class="field full"><span>Filière</span><input formControlName="filiere" /></label>
+      </div>
+      @if (erreur()) { <p class="form-error" role="alert">{{ erreur() }}</p> }
+      <footer class="form-footer">
+        <span>{{ form.dirty ? 'Modifications non enregistrées' : 'Votre profil est à jour' }}</span>
+        <button class="btn-primary" type="submit" [disabled]="sauvegarde() || !form.dirty">
+          {{ sauvegarde() ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+        </button>
+      </footer>
+    </form>
+  }
+</section>

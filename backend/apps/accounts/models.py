@@ -82,6 +82,35 @@ class Utilisateur(AbstractUser):
             code=code, roles__utilisateurs=self
         ).exists()
 
+    def a_acces_document(self, document, permission_code):
+        """Vérifie un droit métier et ses restrictions de rôle sur document/dossier."""
+        if not self.is_authenticated or not self.is_active:
+            return False
+        if self.type_utilisateur in {
+            self.TypeUtilisateur.ANCIEN_ETUDIANT,
+            self.TypeUtilisateur.EXTERNE,
+        }:
+            return False
+        if not self.a_permission(permission_code):
+            return False
+        if self.is_superuser:
+            return True
+
+        role_ids = set(self.roles.values_list("id", flat=True))
+        type_roles = set(
+            document.type_document.roles_autorises.values_list("id", flat=True)
+        )
+        if type_roles and role_ids.isdisjoint(type_roles):
+            return False
+
+        dossier = document.dossier
+        while dossier is not None:
+            dossier_roles = set(dossier.roles_autorises.values_list("id", flat=True))
+            if dossier_roles and role_ids.isdisjoint(dossier_roles):
+                return False
+            dossier = dossier.parent
+        return True
+
 
 class AncienEtudiant(models.Model):
     """Profil complémentaire d'un utilisateur de type ancien étudiant."""

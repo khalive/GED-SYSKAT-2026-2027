@@ -1,4 +1,4 @@
-.auth { min-height: 100vh; display: grid; grid-template-columns: minmax(360px, 5fr) 6fr; }
+.auth { min-height: 100vh; display: grid; grid-template-columns: minmax(360px, 5fr) 6fr; background: var(--bg); }
 
 .marque {
   position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
@@ -19,11 +19,31 @@
 .atouts li { display: flex; align-items: center; gap: .65rem; padding: .7rem .9rem; border-radius: 12px; font-size: .92rem;
   background: rgb(255 255 255 / 10%); border: 1px solid rgb(255 255 255 / 16%); backdrop-filter: blur(8px); }
 
-.contenu { position: relative; display: grid; place-items: center; padding: 2rem 1.25rem; }
+.contenu {
+  position: relative; display: grid; place-items: center; padding: 2rem 1.25rem;
+  background:
+    radial-gradient(50% 45% at 90% 10%, color-mix(in srgb, var(--brand-soft) 65%, transparent), transparent 100%),
+    var(--bg);
+}
 .theme { position: absolute; inset-block-start: 1rem; inset-inline-end: 1rem; }
-.carte { width: 100%; max-width: 420px; }
+.carte {
+  width: 100%; max-width: 440px; padding: clamp(1.35rem, 3vw, 2.25rem);
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow-lg); backdrop-filter: blur(14px);
+  animation: apparition .35s ease-out both;
+}
+
+@keyframes apparition {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 @media (max-width: 900px) {
   .auth { grid-template-columns: 1fr; }
   .marque { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte { animation: none; }
 }

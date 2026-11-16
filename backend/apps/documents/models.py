@@ -86,6 +86,12 @@ class Dossier(models.Model):
         blank=True,
         related_name="sous_dossiers",
     )
+    roles_autorises = models.ManyToManyField(
+        "accounts.Role",
+        blank=True,
+        related_name="dossiers",
+        help_text="Si vide, le dossier hérite des restrictions du type de document et de ses parents.",
+    )
     matricule = models.CharField(
         max_length=30, blank=True, db_index=True,
         help_text="Renseigné pour les dossiers étudiants.",

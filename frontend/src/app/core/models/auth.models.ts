@@ -26,10 +26,19 @@ export interface Utilisateur {
   roles: RoleSimple[];
   permissions: string[];
   profil_etudiant: ProfilEtudiant | null;
+  is_staff: boolean;
 }
 
 export interface LoginRequest {
   username: string;
+  password: string;
+}
+
+export interface InscriptionRequest {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
   password: string;
 }
 
